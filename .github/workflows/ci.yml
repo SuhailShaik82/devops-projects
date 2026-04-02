@@ -1,6 +1,5 @@
-name: Flask App CI
+name: CI
 
-# Trigger workflow on push to main branch
 on:
   push:
     branches: [ main ]
@@ -8,42 +7,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    # Step 1: Checkout repo
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    # Step 2: Setup Python
+    - uses: actions/checkout@v3
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-
-    # Step 3: Install dependencies
     - name: Install dependencies
       run: pip install -r requirements.txt
-
-    # Step 4: Run tests (optional)
     - name: Run tests
-      run: |
-        if [ -f "tests/test_app.py" ]; then
-          pytest
-        else
-          echo "No test files found"
-        fi
-
-    # Step 5: Build Docker image
+      run: pytest  # if you have tests
     - name: Build Docker image
       run: docker build -t shaiksamar/myapp:latest .
-
-    # Step 6: Login to Docker Hub
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    # Step 7: Push Docker image to Docker Hub
-    - name: Push Docker image
-      run: docker push shaiksamar/myapp:latest
+    - name: Push to Docker Hub
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        docker push shaiksamar/myapp:latest
